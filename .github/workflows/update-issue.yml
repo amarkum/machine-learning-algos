@@ -1,48 +1,39 @@
-name: Update Project Issue Status on PR
+name: Echo Source Branch and Find Linked Issues
 
 on:
   pull_request:
     types:
       - opened
+      - synchronize
     branches:
-      - develop
+      - dev
 
 jobs:
-  update-project-issue-status:
+  display-info:
     runs-on: ubuntu-latest
     steps:
-    - name: Update Issue Project Status
-      run: |
-        PR_BRANCH="${{ github.event.pull_request.head.ref }}"
-        OWNER="${{ github.repository_owner }}"
-        REPO="${{ github.event.repository.name }}"
-        GITHUB_TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
-        
-        # Install dependencies (e.g., jq for parsing JSON)
-        sudo apt-get install jq
-        
-        # List all issues and search for the linked branch
-        ISSUES=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-                      "https://api.github.com/repos/$OWNER/$REPO/issues?state=all&per_page=100")
-        ISSUE_NUMBER=$(echo $ISSUES | jq -r --arg PR_BRANCH "$PR_BRANCH" '.[] | select(.body | contains($PR_BRANCH)) | .number')
-        
-        if [ ! -z "$ISSUE_NUMBER" ]; then
-          echo "Linked Issue Found: $ISSUE_NUMBER"
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Echo Source Branch and Find Linked Issues
+        run: |
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+          REPO="${{ github.repository }}"
+          GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
           
-          # Here you need to add the code to update the issue's status in the GitHub Project.
-          # This part depends on the version of GitHub Projects you are using and might require using the GitHub GraphQL API.
+          echo "This is the source branch: $PR_BRANCH"
+          echo "Going to find the issues which link this branch..."
           
-          # Example GraphQL query to move an item to a different column:
-          # query {
-          #   mutation {
-          #     updateProjectNextItemField() {
-          #       //...
-          #     }
-          #   }
-          # }
+          # List all issues and search for the linked branch
+          ISSUES=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                        -X GET "https://api.github.com/repos/$REPO/issues?state=all&per_page=100")
+          ISSUE_NUMBERS=$(echo $ISSUES | jq -r --arg PR_BRANCH "$PR_BRANCH" '.[] | select(.body | contains($PR_BRANCH)) | .number')
           
-        else
-          echo "No linked issue found for branch: $PR_BRANCH"
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          if [ ! -z "$ISSUE_NUMBERS" ]; then
+            echo "Linked Issues Found:"
+            echo "$ISSUE_NUMBERS"
+          else
+            echo "No linked issues found for branch: $PR_BRANCH"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
