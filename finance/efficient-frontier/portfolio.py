@@ -12,7 +12,6 @@ client = Client()
 client.RESPONSE_TIMEOUT = 20
 
 prices = client.futures_symbol_ticker()
-
 symbols = [price['symbol'] for price in prices if price['symbol'].endswith('USDT')]
 
 def fetch_symbol_data(symbol):
