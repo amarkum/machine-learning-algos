@@ -14,7 +14,6 @@ print("Ensure that the TensorFlow version is 2.x")
 
 # 2. Representing Tensors
 # Tensors are multi-dimensional arrays with a uniform type
-
 # Creating various tensors
 string_tensor = tf.Variable("this is a string", dtype=tf.string)
 number_tensor = tf.Variable(324, dtype=tf.int16)
