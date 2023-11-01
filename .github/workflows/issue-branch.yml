@@ -1,0 +1,20 @@
+name: Create Branch on Issue Creation
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+
+    - name: Create branch
+      run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+        BRANCH_NAME=$(echo "issue-${{ github.event.issue.number }}-${{ github.event.issue.title }}" | sed -e "s/[^a-zA-Z0-9]/-/g")
+        git branch $BRANCH_NAME
+        git push origin $BRANCH_NAME
