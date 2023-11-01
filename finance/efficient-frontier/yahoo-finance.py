@@ -9,6 +9,7 @@ from pypfopt import EfficientFrontier, risk_models, expected_returns
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# some change here
 client = Client()
 client.RESPONSE_TIMEOUT = 20
 prices = client.futures_symbol_ticker()
@@ -17,7 +18,6 @@ crypto_symbols = [price['symbol'] for price in prices if price['symbol'].endswit
 stock_symbols = ["AAPL", "MSFT", "GOOGL"]
 currency_symbols = ["EURUSD=X", "JPYUSD=X"]
 commodity_symbols = ["GC=F", "CL=F"]
-
 
 def fetch_crypto_data(symbol):
     klines = client.futures_klines(symbol=symbol, interval=Client.KLINE_INTERVAL_1MINUTE, limit=1440)
