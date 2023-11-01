@@ -1,0 +1,43 @@
+name: Update Issue Project Status on PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - develop
+
+jobs:
+  update-issue-project-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Update Issue Project Status
+        run: |
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          OWNER="${{ github.repository_owner }}"
+          GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          
+          # Install dependencies (e.g., jq for parsing JSON)
+          sudo apt-get install jq
+          
+          # List all issues and search for the linked branch
+          ISSUES=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                        "https://api.github.com/repos/$REPO/issues?state=all&per_page=100")
+          ISSUE_NUMBER=$(echo $ISSUES | jq -r --arg PR_BRANCH "$PR_BRANCH" '.[] | select(.body | contains($PR_BRANCH)) | .number')
+          
+          if [ ! -z "$ISSUE_NUMBER" ]; then
+            echo "Linked Issue Found: $ISSUE_NUMBER"
+            
+            echo "Code to update the issue"
+            
+          else
+            echo "No linked issue found for branch: $PR_BRANCH"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
